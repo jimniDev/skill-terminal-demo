@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Platform — Google Cloud Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1f1f1f;
+    --bg-2: #2d2d2d;
+    --bg-3: #383838;
+    --bg-shell: #1e1e1e;
+    --bg-shell-header: #2d2d2d;
+    --border: #3c4043;
+    --border-soft: #2d2e30;
+    --text: #e8eaed;
+    --text-muted: #9aa0a6;
+    --text-subtle: #80868b;
+    --blue: #8ab4f8;
+    --blue-hover: #aecbfa;
+    --blue-bg: rgba(138,180,248,0.12);
+    --red: #f28b82;
+    --red-bg: rgba(242,139,130,0.1);
+    --green: #81c995;
+    --green-bg: rgba(129,201,149,0.12);
+    --yellow: #fdd663;
+    --yellow-bg: rgba(253,214,99,0.12);
+    --purple: #c58af9;
+    --purple-bg: rgba(197,138,249,0.15);
+    --warning-bg: #4a3f15;
+    --warning-text: #fdd663;
+    --font-sans: 'Google Sans Text', 'Roboto', -apple-system, sans-serif;
+    --font-display: 'Google Sans', 'Roboto', sans-serif;
+    --font-mono: 'Roboto Mono', 'Consolas', monospace;
+    --cloud-shell-height: 380px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100vh; overflow: hidden; }
+  body { font-family: var(--font-sans); color: var(--text); background: var(--bg); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+  .top-bar { height: 56px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 14px; flex-shrink: 0; }
+  .menu-btn { width: 40px; height: 40px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .menu-btn:hover { background: var(--bg-2); }
+  .menu-btn svg { width: 22px; height: 22px; fill: currentColor; }
+  .gc-logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 22px; color: var(--text); font-weight: 400; letter-spacing: -0.2px; }
+  .gc-logo .cloud { font-weight: 400; color: var(--text-muted); }
+  .project-picker { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text); margin-left: 8px; }
+  .project-picker:hover { background: var(--bg-3); }
+  .project-icon { width: 18px; height: 18px; background: linear-gradient(135deg, #4285f4, #ea4335); border-radius: 3px; }
+  .search-bar { flex: 1; max-width: 720px; margin: 0 24px; height: 46px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; padding: 0 16px; gap: 12px; cursor: text; }
+  .search-bar:hover { background: var(--bg-3); }
+  .search-bar input { flex: 1; border: none; background: none; outline: none; color: var(--text); font-family: var(--font-sans); font-size: 15px; }
+  .search-bar input::placeholder { color: var(--text-muted); }
+  .search-bar .search-btn { padding: 6px 18px; background: var(--blue-bg); color: var(--blue); border: none; border-radius: 4px; font-family: var(--font-sans); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .top-icons { display: flex; gap: 4px; align-items: center; }
+  .top-icon-btn { width: 40px; height: 40px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .top-icon-btn:hover { background: var(--bg-2); }
+  .top-icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #d4a574, #c89770); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 500; font-size: 14px; color: white; cursor: pointer; margin-left: 6px; }
+
+  .layout { display: flex; height: calc(100vh - 56px); }
+  .sidebar { width: 256px; background: var(--bg); border-right: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; padding: 8px 0; }
+  .sidebar-header { padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+  .sidebar-icon { width: 24px; height: 24px; background: linear-gradient(135deg, #4285f4, #9b72cb); border-radius: 4px; }
+  .sidebar-title { font-family: var(--font-display); font-size: 16px; font-weight: 500; }
+  .nav-list { flex: 1; padding: 4px 0; }
+  .nav-item { display: flex; align-items: center; gap: 14px; padding: 10px 24px; cursor: pointer; color: var(--text); font-size: 14px; position: relative; }
+  .nav-item:hover { background: var(--bg-2); }
+  .nav-item.active { background: var(--blue-bg); color: var(--blue); }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+  .nav-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+  .nav-item .chevron { margin-left: auto; opacity: 0.6; }
+  .sidebar-footer { padding: 8px 0; border-top: 1px solid var(--border); }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .main-content { flex: 1; overflow-y: auto; padding: 24px 32px; }
+
+  .billing-banner { background: var(--warning-bg); border-radius: 8px; padding: 16px 24px; display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+  .billing-banner svg { width: 22px; height: 22px; fill: var(--warning-text); flex-shrink: 0; }
+  .billing-banner-text { flex: 1; color: var(--text); font-size: 14px; }
+  .billing-banner-text strong { font-weight: 500; }
+  .billing-banner .actions { display: flex; gap: 10px; align-items: center; }
+  .billing-banner .learn-link { color: var(--blue); font-size: 14px; cursor: pointer; }
+  .billing-banner .enable-btn { padding: 8px 20px; background: transparent; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px; font-family: var(--font-display); font-size: 14px; cursor: pointer; }
+
+  .welcome-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .gemini-mark { width: 26px; height: 26px; background: linear-gradient(135deg, #4285f4, #9b72cb 50%, #d96570); border-radius: 50%; }
+  .welcome-eyebrow span { font-family: var(--font-display); font-size: 16px; color: var(--text); font-weight: 500; }
+
+  .welcome-h1 { font-family: var(--font-display); font-size: 36px; font-weight: 400; color: var(--text); margin-bottom: 16px; letter-spacing: -0.5px; }
+  .welcome-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 800px; margin-bottom: 32px; }
+
+  .code-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-width: 100%; margin-top: 32px; }
+  .code-card-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .code-card-controls { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .code-lang { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--bg-3); border-radius: 4px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+  .code-copy-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+  .code-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .code-card-desc { padding: 20px 24px; font-size: 13px; color: var(--text-muted); line-height: 1.7; border-right: 1px solid var(--border); }
+  .code-card-snippet { padding: 20px 24px; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--text); }
+  .code-kw { color: #c58af9; }
+  .code-mod { color: #8ab4f8; }
+  .code-name { color: #e8eaed; }
+
+  .cloud-shell { background: var(--bg-shell); border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; height: var(--cloud-shell-height); }
+  .shell-titlebar { height: 38px; background: var(--bg-shell-header); display: flex; align-items: center; padding: 0 16px; gap: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .shell-icon { width: 22px; height: 22px; background: var(--bg-3); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .shell-icon svg { width: 14px; height: 14px; fill: var(--text); }
+  .shell-label { display: flex; flex-direction: column; line-height: 1.2; }
+  .shell-label-top { font-size: 9px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+  .shell-label-bottom { font-family: var(--font-display); font-size: 13px; color: var(--text); font-weight: 500; }
+  .shell-tab { padding: 7px 14px; background: var(--bg-shell); border-bottom: 2px solid var(--blue); font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: -1px; cursor: pointer; }
+  .shell-tab .tab-content { display: flex; align-items: center; gap: 6px; }
+  .shell-tab .tab-content::before { content: ''; width: 8px; height: 8px; background: var(--blue); border-radius: 50%; }
+  .shell-tab .x { width: 14px; height: 14px; opacity: 0.5; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .shell-tab .x:hover { opacity: 1; }
+  .shell-tab-add { color: var(--text-muted); padding: 4px 8px; cursor: pointer; font-size: 16px; }
+  .shell-tab-add:hover { color: var(--text); }
+  .shell-controls { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+  .open-editor-btn { padding: 6px 14px; background: transparent; color: var(--blue); border: 1px solid transparent; border-radius: 4px; font-family: var(--font-sans); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-right: 8px; }
+  .open-editor-btn:hover { border-color: var(--border); }
+  .shell-control-btn { width: 32px; height: 32px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .shell-control-btn:hover { background: var(--bg-2); }
+  .shell-control-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+  .shell-info-banner { padding: 8px 16px; background: var(--bg-shell); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted); }
+  .shell-info-banner svg { width: 14px; height: 14px; fill: var(--text-muted); }
+  .shell-info-banner a { color: var(--blue); cursor: pointer; }
+  .shell-info-banner .right { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+  .shell-info-banner .right a { color: var(--text-muted); }
+
+  .terminal { flex: 1; padding: 14px 18px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--text); overflow-y: auto; cursor: text; }
+  .terminal-line { white-space: pre-wrap; word-break: break-word; }
+  .term-prompt-user { color: var(--green); }
+  .term-prompt-path { color: var(--blue); }
+  .term-prompt-project { color: var(--yellow); }
+  .term-error-bg { background: var(--red-bg); padding: 10px 14px; border-left: 3px solid var(--red); margin: 6px 0; border-radius: 3px; }
+  .term-success-bg { background: var(--green-bg); padding: 10px 14px; border-left: 3px solid var(--green); margin: 6px 0; border-radius: 3px; }
+  .term-skill-card { background: rgba(197,138,249,0.08); border: 1px solid rgba(197,138,249,0.25); padding: 12px 14px; margin: 10px 0; border-radius: 6px; }
+  .term-skill-link { color: var(--blue); text-decoration: underline; cursor: pointer; }
+  .term-skill-link:hover { color: var(--blue-hover); }
+  .term-info { color: var(--text-muted); }
+  .term-cursor { display: inline-block; width: 8px; height: 16px; background: var(--text); animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 2px; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .skill-overlay { position: fixed; top: 56px; right: 0; width: 480px; bottom: 0; background: var(--bg); border-left: 1px solid var(--border); z-index: 100; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.4); }
+  .skill-overlay.open { transform: translateX(0); }
+  .skill-overlay-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .skill-overlay-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #4285f4, #9b72cb 50%, #d96570); border-radius: 50%; flex-shrink: 0; }
+  .skill-overlay-title { flex: 1; }
+  .skill-overlay-title-main { font-family: var(--font-display); font-size: 16px; font-weight: 500; color: var(--text); }
+  .skill-overlay-title-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .skill-overlay-close { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 50%; }
+  .skill-overlay-close:hover { background: var(--bg-2); color: var(--text); }
+  .skill-overlay-close svg { width: 18px; height: 18px; fill: currentColor; }
+  .skill-overlay-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+
+  .skill-section { margin-bottom: 20px; }
+  .skill-section-label { font-size: 10px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .skill-name-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .skill-name { font-family: var(--font-mono); font-size: 14px; color: var(--purple); font-weight: 500; margin-bottom: 4px; }
+  .skill-version { font-family: var(--font-mono); font-size: 11px; color: var(--text-subtle); }
+  .skill-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+  .skill-input-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; }
+  .skill-input-key { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); min-width: 75px; padding-top: 1px; }
+  .skill-input-value { font-family: var(--font-mono); font-size: 11px; color: var(--blue); word-break: break-all; flex: 1; }
+  .skill-input-source { font-size: 10px; color: var(--text-subtle); padding: 1px 6px; background: var(--blue-bg); border-radius: 3px; flex-shrink: 0; height: fit-content; }
+
+  .skill-step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+  .skill-step:last-child { border-bottom: none; }
+  .skill-step-status { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .skill-step-status.pending { background: var(--bg-3); }
+  .skill-step-status.running { background: var(--blue-bg); }
+  .skill-step-status.running::after { content: ''; width: 10px; height: 10px; border: 2px solid var(--blue); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .skill-step-status.done { background: var(--green-bg); }
+  .skill-step-status.done::after { content: '✓'; color: var(--green); font-size: 12px; font-weight: 700; }
+  .skill-step-content { flex: 1; }
+  .skill-step-title { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+  .skill-step-detail { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  .skill-verify { background: var(--green-bg); border: 1px solid rgba(129,201,149,0.3); border-radius: 8px; padding: 14px 16px; margin-top: 16px; display: none; }
+  .skill-verify.show { display: block; animation: fadeIn 0.4s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .skill-verify-title { font-family: var(--font-display); font-size: 13px; color: var(--green); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .skill-verify-title::before { content: '✓'; font-weight: 700; }
+  .skill-verify-detail { font-size: 12px; color: var(--text); font-family: var(--font-mono); line-height: 1.6; }
+
+  .skill-overlay-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .skill-action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .skill-action-btn.primary { background: var(--blue); color: var(--bg); }
+  .skill-action-btn.primary:hover { background: var(--blue-hover); }
+  .skill-action-btn.secondary { background: var(--bg-2); color: var(--text); border: 1px solid var(--border); }
+  .skill-action-btn.secondary:hover { background: var(--bg-3); }
+  .skill-action-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+  .demo-controls { position: fixed; left: 24px; bottom: calc(var(--cloud-shell-height) + 16px); background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; z-index: 200; box-shadow: 0 4px 24px rgba(0,0,0,0.4); width: 280px; cursor: default; }
+  .demo-controls-drag { cursor: grab; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; user-select: none; }
+  .demo-controls-drag:active { cursor: grabbing; }
+  .demo-controls-drag .drag-dots { display: flex; flex-direction: column; gap: 2px; opacity: 0.4; }
+  .demo-controls-drag .drag-dots span { display: flex; gap: 2px; }
+  .demo-controls-drag .drag-dots span::before, .demo-controls-drag .drag-dots span::after { content: ''; width: 3px; height: 3px; background: var(--text-muted); border-radius: 50%; }
+  .demo-controls-title { font-family: var(--font-display); font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 6px; font-weight: 500; }
+  .demo-controls-title::before { content: ''; width: 8px; height: 8px; background: var(--blue); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .demo-controls-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
+  .demo-controls-btns { display: flex; flex-direction: column; gap: 6px; }
+  .demo-btn { padding: 8px 12px; background: var(--bg-3); border: 1px solid var(--border); color: var(--text); border-radius: 6px; font-family: var(--font-sans); font-size: 12px; cursor: pointer; text-align: left; }
+  .demo-btn:hover { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+  .demo-btn.primary { background: var(--blue); color: var(--bg); border-color: var(--blue); font-weight: 500; }
+  .demo-btn.primary:hover { background: var(--blue-hover); }
+  .demo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="menu-btn">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+  <div class="gc-logo">Google <span class="cloud">Cloud</span></div>
+  <div class="project-picker">
+    <div class="project-icon"></div>
+    <span>My First Project</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+  </div>
+  <div class="search-bar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#9aa0a6"><path d="M15.5 14h-.79l-.28-.27a6.51 6.51 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.51 6.51 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14z"/></svg>
+    <input type="text" placeholder="Search (/) for resources, docs, products, and more">
+    <button class="search-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.51 6.51 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.51 6.51 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14z"/></svg>
+      Search
+    </button>
+  </div>
+  <div class="top-icons">
+    <button class="top-icon-btn"><svg viewBox="0 0 24 24"><defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4285f4"/><stop offset="50%" stop-color="#9b72cb"/><stop offset="100%" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gg)" d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4L2 9.4h7.6z"/></svg></button>
+    <button class="top-icon-btn"><svg viewBox="0 0 24 24"><path d="M21 4H3c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H3V6h18v12z"/></svg></button>
+    <button class="top-icon-btn"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></button>
+    <button class="top-icon-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
+  </div>
+  <div class="avatar">J</div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-icon"></div>
+      <div class="sidebar-title">Agent Platform</div>
+    </div>
+    <div class="nav-list">
+      <div class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Overview</div>
+      <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4L2 9.4h7.6z"/></svg>Studio</div>
+      <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>Models<svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5c0 1.79.55 3.46 1.5 4.83L2 22l6.67-2.5c1.37.95 3.04 1.5 4.83 1.5 4.69 0 8.5-3.81 8.5-8.5S16.19 2 11.5 2z"/></svg>Agents<svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-4-4h3V8h2v7h3l-4 4z"/></svg>Notebooks<svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 5l-9-4-9 4v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5z"/></svg>Tutorials</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-content">
+      <div class="welcome-eyebrow">
+        <div class="gemini-mark"></div>
+        <span>Gemini Enterprise</span>
+      </div>
+      <h1 class="welcome-h1">Welcome to Agent Platform</h1>
+      <p class="welcome-desc">Vertex AI is now Agent Platform, your new home for building enterprise-grade agents with the latest, most sophisticated models.</p>
+
+      <div class="code-card">
+        <div class="code-card-header">
+          <div></div>
+          <div class="code-card-controls">
+            <div class="code-lang">Python<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+            <button class="code-copy-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+          </div>
+        </div>
+        <div class="code-card-body">
+          <div class="code-card-desc">
+            <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 10px;">Get started with Generative AI</h3>
+            Access cutting-edge AI capabilities to generate text, summarize content, and reason over multi-modal inputs.
+          </div>
+          <div class="code-card-snippet">
+<span class="code-kw">from</span> <span class="code-mod">google</span> <span class="code-kw">import</span> <span class="code-name">genai</span>
+<span class="code-kw">from</span> <span class="code-mod">google.genai.types</span> <span class="code-kw">import</span> <span class="code-name">HttpOptions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cloud-shell">
+      <div class="shell-titlebar">
+        <div class="shell-icon"><svg viewBox="0 0 24 24"><path d="M21 4H3c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H3V6h18v12z"/></svg></div>
+        <div class="shell-label">
+          <div class="shell-label-top">CLOUD SHELL</div>
+          <div class="shell-label-bottom">Terminal</div>
+        </div>
+        <div class="shell-tab">
+          <div class="tab-content">light-haven-484520-f8</div>
+          <span class="x">×</span>
+        </div>
+        <span class="shell-tab-add">+</span>
+        <div class="shell-controls">
+          <button class="open-editor-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Open Editor</button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M2 7v10h20V7H2z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M16 8.94c0 .27-.11.52-.29.71L11 14.36 6.29 9.65a1.003 1.003 0 011.41-1.41L11 11.54l3.29-3.29a.99.99 0 011.41 0c.2.18.3.43.3.69z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M5 5h5V3H3v7h2V5zm5 14H5v-5H3v7h7v-2zm11-5h-2v5h-5v2h7v-7zm-2-4h2V3h-7v2h5v5z"/></svg></button>
+          <button class="shell-control-btn"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="shell-info-banner">
+        <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+        <span>Gemini CLI is available in Cloud Shell terminal! Type <span style="font-family: var(--font-mono);">gemini</span> to try it. <a>Learn more</a></span>
+        <div class="right">
+          <a>Don't show again</a>
+          <a>Dismiss</a>
+        </div>
+      </div>
+
+      <div class="terminal" id="terminal">
+        <div class="terminal-line"><span class="term-info">Welcome to Cloud Shell! Type "help" to get started, or type "gemini" to try prompting with Gemini CLI.</span></div>
+        <div class="terminal-line"><span class="term-info">Your Cloud Platform project in this session is set to <span class="term-prompt-project">light-haven-484520-f8</span>.</span></div>
+        <div class="terminal-line"><span class="term-info">Use `gcloud config set project [PROJECT_ID]` to change to a different project.</span></div>
+        <div class="terminal-line" id="termPrompt"><span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span><span id="termInput"></span><span class="term-cursor"></span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="skill-overlay" id="skillOverlay">
+  <div class="skill-overlay-header">
+    <div class="skill-overlay-icon"></div>
+    <div class="skill-overlay-title">
+      <div class="skill-overlay-title-main">Gemini · Resolving with Skill</div>
+      <div class="skill-overlay-title-sub">From error <span style="font-family: var(--font-mono);">PERMISSION_DENIED</span></div>
+    </div>
+    <button class="skill-overlay-close" onclick="closeSkill()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+  </div>
+  <div class="skill-overlay-body">
+    <div class="skill-section">
+      <div class="skill-section-label">Skill</div>
+      <div class="skill-name-card">
+        <div class="skill-name">gcp:iam/grant-role</div>
+        <div class="skill-version">v1.2.0 · published by Google Cloud Documentation</div>
+        <div class="skill-desc">Grant a predefined or custom IAM role to a principal at the appropriate resource level, then verify the original failing operation now succeeds.</div>
+      </div>
+    </div>
+
+    <div class="skill-section">
+      <div class="skill-section-label">Inputs (auto-filled from error)</div>
+      <div class="skill-input-row">
+        <div class="skill-input-key">principal</div>
+        <div class="skill-input-value">my-app-sa@light-haven-484520-f8.iam.gserviceaccount.com</div>
+        <div class="skill-input-source">from error</div>
+      </div>
+      <div class="skill-input-row">
+        <div class="skill-input-key">role</div>
+        <div class="skill-input-value">roles/aiplatform.user</div>
+        <div class="skill-input-source">inferred</div>
+      </div>
+      <div class="skill-input-row">
+        <div class="skill-input-key">resource</div>
+        <div class="skill-input-value">projects/light-haven-484520-f8</div>
+        <div class="skill-input-source">from error</div>
+      </div>
+    </div>
+
+    <div class="skill-section">
+      <div class="skill-section-label">Procedure</div>
+      <div class="skill-step" id="step-0">
+        <div class="skill-step-status pending"></div>
+        <div class="skill-step-content"><div class="skill-step-title">Verify caller has permission</div><div class="skill-step-detail">Check resourcemanager.projectIamAdmin on project</div></div>
+      </div>
+      <div class="skill-step" id="step-1">
+        <div class="skill-step-status pending"></div>
+        <div class="skill-step-content"><div class="skill-step-title">Resolve principal identity</div><div class="skill-step-detail">Look up service account in IAM</div></div>
+      </div>
+      <div class="skill-step" id="step-2">
+        <div class="skill-step-status pending"></div>
+        <div class="skill-step-content"><div class="skill-step-title">Grant role via setIamPolicy</div><div class="skill-step-detail">setIamPolicy on projects/light-haven-484520-f8</div></div>
+      </div>
+      <div class="skill-step" id="step-3">
+        <div class="skill-step-status pending"></div>
+        <div class="skill-step-content"><div class="skill-step-title">Wait for propagation</div><div class="skill-step-detail">Poll until policy reflects change (up to 7 min)</div></div>
+      </div>
+    </div>
+
+    <div class="skill-verify" id="skillVerify">
+      <div class="skill-verify-title">Verification passed</div>
+      <div class="skill-verify-detail">Re-ran <span style="color:var(--blue);">aiplatform.endpoints.predict</span> with new permissions.<br>Endpoint returned 200 OK in 1.4s.</div>
+    </div>
+  </div>
+  <div class="skill-overlay-footer">
+    <button class="skill-action-btn secondary" onclick="closeSkill()">View details</button>
+    <button class="skill-action-btn primary" id="skillRunBtn" onclick="runSkill()">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      Run skill
+    </button>
+  </div>
+</div>
+
+<div class="demo-controls" id="demoControls">
+  <div class="demo-controls-drag" id="demoDragHandle">
+    <div class="drag-dots"><span></span><span></span><span></span></div>
+    <div class="demo-controls-title">Prototype demo</div>
+  </div>
+  <div class="demo-controls-desc">Simulating the "Embedded in error messages" mechanism. Click each step.</div>
+  <div class="demo-controls-btns">
+    <button class="demo-btn primary" id="btn1" onclick="step1()">1 · Run gcloud command</button>
+    <button class="demo-btn" id="btn2" disabled onclick="step2()">2 · Click "Resolve with Skill" link</button>
+    <button class="demo-btn" id="btn3" disabled onclick="resetDemo()">↻ Reset</button>
+  </div>
+</div>
+
+<script>
+const terminal = document.getElementById('terminal');
+const termInput = document.getElementById('termInput');
+const skillOverlay = document.getElementById('skillOverlay');
+
+(function initDrag() {
+  const card = document.getElementById('demoControls');
+  const handle = document.getElementById('demoDragHandle');
+  let dragging = false, offsetX = 0, offsetY = 0;
+
+  handle.addEventListener('mousedown', (e) => {
+    dragging = true;
+    const rect = card.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    card.style.transition = 'none';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    x = Math.max(0, Math.min(x, window.innerWidth - card.offsetWidth));
+    y = Math.max(0, Math.min(y, window.innerHeight - card.offsetHeight));
+    card.style.left = x + 'px';
+    card.style.top = y + 'px';
+    card.style.bottom = 'auto';
+    card.style.right = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+})();
+
+function appendBlock(html, cls) {
+  const div = document.createElement('div');
+  div.className = cls;
+  div.innerHTML = html;
+  const promptLine = document.getElementById('termPrompt');
+  terminal.insertBefore(div, promptLine);
+  terminal.scrollTop = terminal.scrollHeight;
+  return div;
+}
+
+async function typeCommand(text, speed = 22) {
+  termInput.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    termInput.textContent += text[i];
+    await sleep(speed);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function step1() {
+  document.getElementById('btn1').disabled = true;
+  document.getElementById('btn1').classList.remove('primary');
+
+  const cmd = "gcloud ai endpoints predict 1234567890 --region=us-central1 --json-request=request.json";
+  await typeCommand(cmd);
+  await sleep(300);
+
+  const promptLine = document.getElementById('termPrompt');
+  const cmdLine = document.createElement('div');
+  cmdLine.className = 'terminal-line';
+  cmdLine.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span><span>${cmd}</span>`;
+  terminal.insertBefore(cmdLine, promptLine);
+  termInput.textContent = '';
+  terminal.scrollTop = terminal.scrollHeight;
+
+  await sleep(600);
+
+  appendBlock(`
+<div style="color: var(--red); font-weight: 500; margin-bottom: 4px;">ERROR: (gcloud.ai.endpoints.predict) PERMISSION_DENIED</div>
+<div style="color: var(--text); margin-bottom: 6px;">Permission '<span style="color: var(--blue);">aiplatform.endpoints.predict</span>' denied on resource</div>
+<div style="color: var(--text-muted); font-size: 12px;">'projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890'</div>
+  `, 'term-error-bg');
+
+  await sleep(400);
+
+  appendBlock(`
+<div style="color: var(--purple); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">🔧 Resolve with Skill: <span style="font-family: var(--font-mono);">gcp:iam/grant-role</span></div>
+<div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px; line-height: 1.6;">Gemini can grant the missing role and verify the original operation succeeds.</div>
+<div style="color: var(--text); font-size: 13px;">→ <span class="term-skill-link" onclick="step2()">Run with Gemini in Console</span></div>
+<div style="color: var(--text-muted); font-size: 11px; margin-top: 4px; font-family: var(--font-mono);">  Or: gcloud skills run iam/grant-role --from-error</div>
+  `, 'term-skill-card');
+
+  await sleep(400);
+
+  document.getElementById('btn2').disabled = false;
+  document.getElementById('btn2').classList.add('primary');
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+async function step2() {
+  document.getElementById('btn2').disabled = true;
+  document.getElementById('btn2').classList.remove('primary');
+  skillOverlay.classList.add('open');
+  document.getElementById('btn3').disabled = false;
+}
+
+async function runSkill() {
+  const runBtn = document.getElementById('skillRunBtn');
+  runBtn.disabled = true;
+  runBtn.innerHTML = `Running...`;
+
+  for (let i = 0; i < 4; i++) {
+    const step = document.querySelector(`#step-${i} .skill-step-status`);
+    step.classList.remove('pending');
+    step.classList.add('running');
+    await sleep(900);
+    step.classList.remove('running');
+    step.classList.add('done');
+    await sleep(200);
+  }
+
+  await sleep(400);
+  document.getElementById('skillVerify').classList.add('show');
+
+  await sleep(800);
+  const promptLine = document.getElementById('termPrompt');
+  const cmd2 = "gcloud ai endpoints predict 1234567890 --region=us-central1 --json-request=request.json";
+
+  const noteLine = document.createElement('div');
+  noteLine.className = 'terminal-line';
+  noteLine.innerHTML = `<span class="term-info" style="font-size: 11px;"># Gemini auto-retrying original command...</span>`;
+  terminal.insertBefore(noteLine, promptLine);
+
+  await sleep(300);
+
+  const cmdLine2 = document.createElement('div');
+  cmdLine2.className = 'terminal-line';
+  cmdLine2.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span>${cmd2}`;
+  terminal.insertBefore(cmdLine2, promptLine);
+
+  await sleep(500);
+
+  appendBlock(`
+<div style="color: var(--green); font-weight: 500; margin-bottom: 4px;">✓ Prediction successful</div>
+<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px;">{</div>
+<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 16px;">"predictions": [</div>
+<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 32px;">{ "label": "positive", "confidence": 0.94 }</div>
+<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 16px;">]</div>
+<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px;">}</div>
+  `, 'term-success-bg');
+
+  runBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Done`;
+  runBtn.style.background = 'var(--green)';
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function closeSkill() {
+  skillOverlay.classList.remove('open');
+}
+
+function resetDemo() {
+  location.reload();
+}
+</script>
+</body>
+</html>

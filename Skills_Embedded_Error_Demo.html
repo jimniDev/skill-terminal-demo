@@ -47,7 +47,7 @@
     --font-sans: 'Google Sans Text', 'Roboto', -apple-system, sans-serif;
     --font-display: 'Google Sans', 'Roboto', sans-serif;
     --font-mono: 'Roboto Mono', 'Consolas', monospace;
-    --cloud-shell-height: 380px;
+    --cloud-shell-height: min(720px, 72vh);
   }
   [data-theme="dark"] {
     --bg: #1f1f1f;
@@ -202,6 +202,7 @@
   .term-err-label { color: #f85149; font-weight: 700; }
   .term-err-msg { color: #e8eaed; }
   .term-err-dim { color: #9aa0a6; }
+  .term-err-auth { color: #e8eaed; margin-top: 4px; }
   .term-gcloud-output { margin: 0; padding: 0; }
   .term-gcloud-output .terminal-line { margin: 0; }
   .term-skill-embed { margin-top: 2px; }
@@ -574,6 +575,7 @@ const GCLOUD_ERROR_HTML = `
 <div class="terminal-line term-err-dim">  metadata:</div>
 <div class="terminal-line term-err-dim">    permission: aiplatform.endpoints.predict</div>
 <div class="terminal-line term-err-dim">    resource: projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890</div>
+<div class="terminal-line term-err-auth">This command is authenticated as <span class="term-err-dim">my-app-sa@light-haven-484520-f8.iam.gserviceaccount.com</span> which is the active account specified by the [core/account] property.</div>
 `;
 
 const GCLOUD_SKILL_HTML = `
@@ -606,27 +608,18 @@ async function step1() {
   const promptLine = document.getElementById('termPrompt');
   const cmdLine = document.createElement('div');
   cmdLine.className = 'terminal-line';
-  cmdLine.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span><span>${cmd}</span>`;
+  cmdLine.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span class="term-prompt-dollar">$ </span><span>${cmd}</span>`;
   terminal.insertBefore(cmdLine, promptLine);
   termInput.textContent = '';
   terminal.scrollTop = terminal.scrollHeight;
 
   await sleep(600);
 
-  appendBlock(`
-<div style="color: var(--red); font-weight: 500; margin-bottom: 4px;">ERROR: (gcloud.ai.endpoints.predict) HTTPError 403: Forbidden</div>
-<div style="color: var(--text); margin-bottom: 6px;">The caller does not have permission '<span style="color: var(--blue);">aiplatform.endpoints.predict</span>' on the endpoint.</div>
-<div style="color: var(--text-muted); font-size: 12px;">'projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890'</div>
-  `, 'term-error-bg');
+  appendTerminalOutput(GCLOUD_ERROR_HTML);
 
   await sleep(400);
 
-  appendBlock(`
-<div style="color: var(--purple); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">🔧 Resolve with Skill: <span style="font-family: var(--font-mono);">fix-403-forbidden-access</span></div>
-<div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px; line-height: 1.6;">Fix 403 Forbidden Access — detect identity, inspect IAM, bind the missing role, and verify the endpoint call succeeds.</div>
-<div style="color: var(--text); font-size: 13px;">→ <span class="term-skill-link" onclick="step2()">Run with Gemini in Console</span></div>
-<div style="color: var(--text-muted); font-size: 11px; margin-top: 4px; font-family: var(--font-mono);">  Or: gcloud skills run fix-403-error skill --from-error</div>
-  `, 'term-skill-card');
+  appendTerminalOutput(GCLOUD_SKILL_HTML, 'term-skill-embed');
 
   await sleep(400);
 
@@ -673,19 +666,21 @@ async function runSkill() {
 
   const cmdLine2 = document.createElement('div');
   cmdLine2.className = 'terminal-line';
-  cmdLine2.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span>${cmd2}`;
+  cmdLine2.innerHTML = `<span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span class="term-prompt-dollar">$ </span>${cmd2}`;
   terminal.insertBefore(cmdLine2, promptLine);
 
   await sleep(500);
 
-  appendBlock(`
-<div style="color: var(--green); font-weight: 500; margin-bottom: 4px;">✓ Prediction successful</div>
-<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px;">{</div>
-<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 16px;">"predictions": [</div>
-<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 32px;">{ "label": "positive", "confidence": 0.94 }</div>
-<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px; padding-left: 16px;">]</div>
-<div style="color: var(--text); font-family: var(--font-mono); font-size: 12px;">}</div>
-  `, 'term-success-bg');
+  appendTerminalOutput(`
+<div class="terminal-line term-json-output">{</div>
+<div class="terminal-line term-json-output">  <span class="term-json-key">"predictions"</span>: [</div>
+<div class="terminal-line term-json-output">    {</div>
+<div class="terminal-line term-json-output">      <span class="term-json-key">"label"</span>: <span class="term-json-str">"positive"</span>,</div>
+<div class="terminal-line term-json-output">      <span class="term-json-key">"confidence"</span>: <span class="term-json-num">0.94</span></div>
+<div class="terminal-line term-json-output">    }</div>
+<div class="terminal-line term-json-output">  ]</div>
+<div class="terminal-line term-json-output">}</div>
+  `);
 
   runBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Done`;
   runBtn.style.background = 'var(--green)';

@@ -4,9 +4,52 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent Platform — Google Cloud Console</title>
+<script>
+(function () {
+  var t = localStorage.getItem('gcp-demo-theme');
+  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
+  :root,
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --bg-2: #f8f9fa;
+    --bg-3: #f1f3f4;
+    --bg-shell: #ffffff;
+    --bg-shell-header: #f1f3f4;
+    --border: #dadce0;
+    --border-soft: #e8eaed;
+    --text: #202124;
+    --text-muted: #5f6368;
+    --text-subtle: #80868b;
+    --blue: #1a73e8;
+    --blue-hover: #1967d2;
+    --blue-bg: rgba(26,115,232,0.08);
+    --red: #d93025;
+    --red-bg: rgba(217,48,37,0.08);
+    --green: #137333;
+    --green-bg: rgba(19,115,51,0.08);
+    --yellow: #b06000;
+    --yellow-bg: rgba(234,134,0,0.1);
+    --purple: #8430ce;
+    --purple-bg: rgba(132,48,206,0.08);
+    --warning-bg: #fef7e0;
+    --warning-text: #b06000;
+    --code-kw: #8430ce;
+    --code-mod: #1a73e8;
+    --code-name: #202124;
+    --shadow-overlay: -4px 0 24px rgba(60,64,67,0.15);
+    --shadow-panel: 0 4px 24px rgba(60,64,67,0.15);
+    --skill-card-border: rgba(132,48,206,0.25);
+    --skill-verify-border: rgba(19,115,51,0.25);
+    --font-sans: 'Google Sans Text', 'Roboto', -apple-system, sans-serif;
+    --font-display: 'Google Sans', 'Roboto', sans-serif;
+    --font-mono: 'Roboto Mono', 'Consolas', monospace;
+    --cloud-shell-height: 380px;
+  }
+  [data-theme="dark"] {
     --bg: #1f1f1f;
     --bg-2: #2d2d2d;
     --bg-3: #383838;
@@ -30,14 +73,17 @@
     --purple-bg: rgba(197,138,249,0.15);
     --warning-bg: #4a3f15;
     --warning-text: #fdd663;
-    --font-sans: 'Google Sans Text', 'Roboto', -apple-system, sans-serif;
-    --font-display: 'Google Sans', 'Roboto', sans-serif;
-    --font-mono: 'Roboto Mono', 'Consolas', monospace;
-    --cloud-shell-height: 380px;
+    --code-kw: #c58af9;
+    --code-mod: #8ab4f8;
+    --code-name: #e8eaed;
+    --shadow-overlay: -4px 0 24px rgba(0,0,0,0.4);
+    --shadow-panel: 0 4px 24px rgba(0,0,0,0.4);
+    --skill-card-border: rgba(197,138,249,0.25);
+    --skill-verify-border: rgba(129,201,149,0.3);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100vh; overflow: hidden; }
-  body { font-family: var(--font-sans); color: var(--text); background: var(--bg); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font-sans); color: var(--text); background: var(--bg); font-size: 14px; -webkit-font-smoothing: antialiased; transition: background-color 0.2s, color 0.2s; }
 
   .top-bar { height: 56px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 14px; flex-shrink: 0; }
   .menu-btn { width: 40px; height: 40px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -57,6 +103,11 @@
   .top-icon-btn { width: 40px; height: 40px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
   .top-icon-btn:hover { background: var(--bg-2); }
   .top-icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+  .theme-toggle .icon-moon { display: block; }
+  .theme-toggle .icon-sun { display: none; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+  .search-bar .search-icon { fill: var(--text-muted); }
   .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #d4a574, #c89770); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 500; font-size: 14px; color: white; cursor: pointer; margin-left: 6px; }
 
   .layout { display: flex; height: calc(100vh - 56px); }
@@ -99,9 +150,9 @@
   .code-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
   .code-card-desc { padding: 20px 24px; font-size: 13px; color: var(--text-muted); line-height: 1.7; border-right: 1px solid var(--border); }
   .code-card-snippet { padding: 20px 24px; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--text); }
-  .code-kw { color: #c58af9; }
-  .code-mod { color: #8ab4f8; }
-  .code-name { color: #e8eaed; }
+  .code-kw { color: var(--code-kw); }
+  .code-mod { color: var(--code-mod); }
+  .code-name { color: var(--code-name); }
 
   .cloud-shell { background: var(--bg-shell); border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; height: var(--cloud-shell-height); }
   .shell-titlebar { height: 38px; background: var(--bg-shell-header); display: flex; align-items: center; padding: 0 16px; gap: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -130,21 +181,45 @@
   .shell-info-banner .right { margin-left: auto; display: flex; gap: 16px; align-items: center; }
   .shell-info-banner .right a { color: var(--text-muted); }
 
-  .terminal { flex: 1; padding: 14px 18px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--text); overflow-y: auto; cursor: text; }
+  /* Cloud Shell terminal — always dark (matches real GCP Shell regardless of console theme) */
+  .terminal {
+    flex: 1;
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.45;
+    background: #000000;
+    color: #e8eaed;
+    overflow-y: auto;
+    cursor: text;
+  }
   .terminal-line { white-space: pre-wrap; word-break: break-word; }
-  .term-prompt-user { color: var(--green); }
-  .term-prompt-path { color: var(--blue); }
-  .term-prompt-project { color: var(--yellow); }
-  .term-error-bg { background: var(--red-bg); padding: 10px 14px; border-left: 3px solid var(--red); margin: 6px 0; border-radius: 3px; }
-  .term-success-bg { background: var(--green-bg); padding: 10px 14px; border-left: 3px solid var(--green); margin: 6px 0; border-radius: 3px; }
-  .term-skill-card { background: rgba(197,138,249,0.08); border: 1px solid rgba(197,138,249,0.25); padding: 12px 14px; margin: 10px 0; border-radius: 6px; }
-  .term-skill-link { color: var(--blue); text-decoration: underline; cursor: pointer; }
-  .term-skill-link:hover { color: var(--blue-hover); }
-  .term-info { color: var(--text-muted); }
-  .term-cursor { display: inline-block; width: 8px; height: 16px; background: var(--text); animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 2px; }
+  .term-prompt-user { color: #7ee787; }
+  .term-prompt-path { color: #79c0ff; }
+  .term-prompt-project { color: #e3b341; }
+  .term-prompt-dollar { color: #e8eaed; }
+  .term-info { color: #9aa0a6; }
+  .term-err-label { color: #f85149; font-weight: 700; }
+  .term-err-msg { color: #e8eaed; }
+  .term-err-dim { color: #9aa0a6; }
+  .term-gcloud-output { margin: 0; padding: 0; }
+  .term-gcloud-output .terminal-line { margin: 0; }
+  .term-skill-embed { margin-top: 2px; }
+  .term-skill-embed .terminal-line:first-child { color: #9aa0a6; }
+  .term-skill-label { color: #c58af9; font-weight: 500; }
+  .term-skill-id { color: #e8eaed; }
+  .term-skill-desc { color: #9aa0a6; }
+  .term-skill-link { color: #79c0ff; text-decoration: underline; cursor: pointer; }
+  .term-skill-link:hover { color: #a5d6ff; }
+  .term-skill-cmd { color: #9aa0a6; }
+  .term-json-output { color: #e8eaed; }
+  .term-json-key { color: #79c0ff; }
+  .term-json-str { color: #7ee787; }
+  .term-json-num { color: #d2a8ff; }
+  .term-cursor { display: inline-block; width: 8px; height: 16px; background: #e8eaed; animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 2px; }
   @keyframes blink { 50% { opacity: 0; } }
 
-  .skill-overlay { position: fixed; top: 56px; right: 0; width: 480px; bottom: 0; background: var(--bg); border-left: 1px solid var(--border); z-index: 100; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.4); }
+  .skill-overlay { position: fixed; top: 56px; right: 0; width: 480px; bottom: 0; background: var(--bg); border-left: 1px solid var(--border); z-index: 100; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; box-shadow: var(--shadow-overlay); }
   .skill-overlay.open { transform: translateX(0); }
   .skill-overlay-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
   .skill-overlay-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #4285f4, #9b72cb 50%, #d96570); border-radius: 50%; flex-shrink: 0; }
@@ -181,7 +256,7 @@
   .skill-step-title { font-size: 13px; color: var(--text); margin-bottom: 2px; }
   .skill-step-detail { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
 
-  .skill-verify { background: var(--green-bg); border: 1px solid rgba(129,201,149,0.3); border-radius: 8px; padding: 14px 16px; margin-top: 16px; display: none; }
+  .skill-verify { background: var(--green-bg); border: 1px solid var(--skill-verify-border); border-radius: 8px; padding: 14px 16px; margin-top: 16px; display: none; }
   .skill-verify.show { display: block; animation: fadeIn 0.4s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .skill-verify-title { font-family: var(--font-display); font-size: 13px; color: var(--green); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
@@ -190,13 +265,13 @@
 
   .skill-overlay-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
   .skill-action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .skill-action-btn.primary { background: var(--blue); color: var(--bg); }
+  .skill-action-btn.primary { background: var(--blue); color: #ffffff; }
   .skill-action-btn.primary:hover { background: var(--blue-hover); }
   .skill-action-btn.secondary { background: var(--bg-2); color: var(--text); border: 1px solid var(--border); }
   .skill-action-btn.secondary:hover { background: var(--bg-3); }
   .skill-action-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-  .demo-controls { position: fixed; left: 24px; bottom: calc(var(--cloud-shell-height) + 16px); background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; z-index: 200; box-shadow: 0 4px 24px rgba(0,0,0,0.4); width: 280px; cursor: default; }
+  .demo-controls { position: fixed; left: 24px; bottom: calc(var(--cloud-shell-height) + 16px); background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; z-index: 200; box-shadow: var(--shadow-panel); width: 280px; cursor: default; }
   .demo-controls-drag { cursor: grab; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; user-select: none; }
   .demo-controls-drag:active { cursor: grabbing; }
   .demo-controls-drag .drag-dots { display: flex; flex-direction: column; gap: 2px; opacity: 0.4; }
@@ -209,7 +284,7 @@
   .demo-controls-btns { display: flex; flex-direction: column; gap: 6px; }
   .demo-btn { padding: 8px 12px; background: var(--bg-3); border: 1px solid var(--border); color: var(--text); border-radius: 6px; font-family: var(--font-sans); font-size: 12px; cursor: pointer; text-align: left; }
   .demo-btn:hover { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
-  .demo-btn.primary { background: var(--blue); color: var(--bg); border-color: var(--blue); font-weight: 500; }
+  .demo-btn.primary { background: var(--blue); color: #ffffff; border-color: var(--blue); font-weight: 500; }
   .demo-btn.primary:hover { background: var(--blue-hover); }
   .demo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
@@ -227,7 +302,7 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
   </div>
   <div class="search-bar">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#9aa0a6"><path d="M15.5 14h-.79l-.28-.27a6.51 6.51 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.51 6.51 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14z"/></svg>
+    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.51 6.51 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.51 6.51 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14z"/></svg>
     <input type="text" placeholder="Search (/) for resources, docs, products, and more">
     <button class="search-btn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.51 6.51 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.51 6.51 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14z"/></svg>
@@ -235,6 +310,10 @@
     </button>
   </div>
   <div class="top-icons">
+    <button class="top-icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Dark mode">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2v-2H2v2zm18 0h2v-2h-2v2zM11 2v2h2V2h-2zm0 18v2h2v-2h-2zM4.22 4.22l1.42 1.42 1.41-1.41-1.42-1.42zm12.73 12.73l1.41 1.41 1.42-1.41-1.41-1.42zM4.22 19.78l1.42-1.42-1.41-1.41-1.42 1.41zm12.73-12.73l1.41-1.41 1.42 1.41-1.41 1.42z"/></svg>
+    </button>
     <button class="top-icon-btn"><svg viewBox="0 0 24 24"><defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4285f4"/><stop offset="50%" stop-color="#9b72cb"/><stop offset="100%" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gg)" d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4L2 9.4h7.6z"/></svg></button>
     <button class="top-icon-btn"><svg viewBox="0 0 24 24"><path d="M21 4H3c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H3V6h18v12z"/></svg></button>
     <button class="top-icon-btn"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></button>
@@ -328,7 +407,7 @@
         <div class="terminal-line"><span class="term-info">Welcome to Cloud Shell! Type "help" to get started, or type "gemini" to try prompting with Gemini CLI.</span></div>
         <div class="terminal-line"><span class="term-info">Your Cloud Platform project in this session is set to <span class="term-prompt-project">light-haven-484520-f8</span>.</span></div>
         <div class="terminal-line"><span class="term-info">Use `gcloud config set project [PROJECT_ID]` to change to a different project.</span></div>
-        <div class="terminal-line" id="termPrompt"><span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span style="color:var(--text)">$ </span><span id="termInput"></span><span class="term-cursor"></span></div>
+        <div class="terminal-line" id="termPrompt"><span class="term-prompt-user">jimin31@cloudshell:</span><span class="term-prompt-path">~</span> <span class="term-prompt-project">(light-haven-484520-f8)</span><span class="term-prompt-dollar">$ </span><span id="termInput"></span><span class="term-cursor"></span></div>
       </div>
     </div>
   </main>
@@ -339,7 +418,7 @@
     <div class="skill-overlay-icon"></div>
     <div class="skill-overlay-title">
       <div class="skill-overlay-title-main">Gemini · Resolving with Skill</div>
-      <div class="skill-overlay-title-sub">From error <span style="font-family: var(--font-mono);">PERMISSION_DENIED</span></div>
+      <div class="skill-overlay-title-sub">From error <span style="font-family: var(--font-mono);">403 Forbidden</span></div>
     </div>
     <button class="skill-overlay-close" onclick="closeSkill()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   </div>
@@ -347,14 +426,19 @@
     <div class="skill-section">
       <div class="skill-section-label">Skill</div>
       <div class="skill-name-card">
-        <div class="skill-name">gcp:iam/grant-role</div>
-        <div class="skill-version">v1.2.0 · published by Google Cloud Documentation</div>
-        <div class="skill-desc">Grant a predefined or custom IAM role to a principal at the appropriate resource level, then verify the original failing operation now succeeds.</div>
+        <div class="skill-name">fix-403-forbidden-access</div>
+        <div class="skill-version">Troubleshooting · ★ 12,400 runs in the last 30 days</div>
+        <div class="skill-desc">Structured troubleshooting path for resolving a 403 Forbidden error when calling a Vertex AI or Gemini Enterprise endpoint. Covers identity detection, IAM policy inspection, and role binding to restore access.</div>
       </div>
     </div>
 
     <div class="skill-section">
       <div class="skill-section-label">Inputs (auto-filled from error)</div>
+      <div class="skill-input-row">
+        <div class="skill-input-key">endpoint</div>
+        <div class="skill-input-value">projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890</div>
+        <div class="skill-input-source">from error</div>
+      </div>
       <div class="skill-input-row">
         <div class="skill-input-key">principal</div>
         <div class="skill-input-value">my-app-sa@light-haven-484520-f8.iam.gserviceaccount.com</div>
@@ -365,40 +449,35 @@
         <div class="skill-input-value">roles/aiplatform.user</div>
         <div class="skill-input-source">inferred</div>
       </div>
-      <div class="skill-input-row">
-        <div class="skill-input-key">resource</div>
-        <div class="skill-input-value">projects/light-haven-484520-f8</div>
-        <div class="skill-input-source">from error</div>
-      </div>
     </div>
 
     <div class="skill-section">
       <div class="skill-section-label">Procedure</div>
       <div class="skill-step" id="step-0">
         <div class="skill-step-status pending"></div>
-        <div class="skill-step-content"><div class="skill-step-title">Verify caller has permission</div><div class="skill-step-detail">Check resourcemanager.projectIamAdmin on project</div></div>
+        <div class="skill-step-content"><div class="skill-step-title">Detect caller identity</div><div class="skill-step-detail">Resolve active principal for the failed predict call</div></div>
       </div>
       <div class="skill-step" id="step-1">
         <div class="skill-step-status pending"></div>
-        <div class="skill-step-content"><div class="skill-step-title">Resolve principal identity</div><div class="skill-step-detail">Look up service account in IAM</div></div>
+        <div class="skill-step-content"><div class="skill-step-title">Inspect IAM policy</div><div class="skill-step-detail">GetIamPolicy on projects/light-haven-484520-f8</div></div>
       </div>
       <div class="skill-step" id="step-2">
         <div class="skill-step-status pending"></div>
-        <div class="skill-step-content"><div class="skill-step-title">Grant role via setIamPolicy</div><div class="skill-step-detail">setIamPolicy on projects/light-haven-484520-f8</div></div>
+        <div class="skill-step-content"><div class="skill-step-title">Bind missing Vertex AI role</div><div class="skill-step-detail">Grant roles/aiplatform.user to my-app-sa@...</div></div>
       </div>
       <div class="skill-step" id="step-3">
         <div class="skill-step-status pending"></div>
-        <div class="skill-step-content"><div class="skill-step-title">Wait for propagation</div><div class="skill-step-detail">Poll until policy reflects change (up to 7 min)</div></div>
+        <div class="skill-step-content"><div class="skill-step-title">Verify endpoint access</div><div class="skill-step-detail">Re-run predict; confirm 403 is resolved</div></div>
       </div>
     </div>
 
     <div class="skill-verify" id="skillVerify">
       <div class="skill-verify-title">Verification passed</div>
-      <div class="skill-verify-detail">Re-ran <span style="color:var(--blue);">aiplatform.endpoints.predict</span> with new permissions.<br>Endpoint returned 200 OK in 1.4s.</div>
+      <div class="skill-verify-detail">Re-ran Vertex AI predict against the endpoint.<br>403 Forbidden cleared — response 200 OK in 1.4s.</div>
     </div>
   </div>
   <div class="skill-overlay-footer">
-    <button class="skill-action-btn secondary" onclick="closeSkill()">View details</button>
+    <button class="skill-action-btn secondary" onclick="window.open('https://jimnidev.github.io/google-cloud-docs-capstone/pages/skill-detail-screen.html#skills/fix-403-forbidden-access', '_blank')">View details</button>
     <button class="skill-action-btn primary" id="skillRunBtn" onclick="runSkill()">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       Run skill
@@ -423,6 +502,26 @@
 const terminal = document.getElementById('terminal');
 const termInput = document.getElementById('termInput');
 const skillOverlay = document.getElementById('skillOverlay');
+
+(function initTheme() {
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    localStorage.setItem('gcp-demo-theme', theme);
+    const isDark = theme === 'dark';
+    btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.title = isDark ? 'Light mode' : 'Dark mode';
+  }
+
+  btn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+
+  applyTheme(root.getAttribute('data-theme') || 'light');
+})();
 
 (function initDrag() {
   const card = document.getElementById('demoControls');
@@ -457,15 +556,34 @@ const skillOverlay = document.getElementById('skillOverlay');
   });
 })();
 
-function appendBlock(html, cls) {
+function appendTerminalOutput(html, extraClass) {
   const div = document.createElement('div');
-  div.className = cls;
+  div.className = 'term-gcloud-output' + (extraClass ? ' ' + extraClass : '');
   div.innerHTML = html;
   const promptLine = document.getElementById('termPrompt');
   terminal.insertBefore(div, promptLine);
   terminal.scrollTop = terminal.scrollHeight;
   return div;
 }
+
+const GCLOUD_ERROR_HTML = `
+<div class="terminal-line"><span class="term-err-label">ERROR: </span><span class="term-err-msg">(gcloud.ai.endpoints.predict) PERMISSION_DENIED: Permission 'aiplatform.endpoints.predict' denied on resource '//aiplatform.googleapis.com/projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890' (or it may not exist).</span></div>
+<div class="terminal-line term-err-dim">- '@type': type.googleapis.com/google.rpc.ErrorInfo</div>
+<div class="terminal-line term-err-dim">  reason: IAM_PERMISSION_DENIED</div>
+<div class="terminal-line term-err-dim">  domain: aiplatform.googleapis.com</div>
+<div class="terminal-line term-err-dim">  metadata:</div>
+<div class="terminal-line term-err-dim">    permission: aiplatform.endpoints.predict</div>
+<div class="terminal-line term-err-dim">    resource: projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890</div>
+`;
+
+const GCLOUD_SKILL_HTML = `
+<div class="terminal-line">---</div>
+<div class="terminal-line"><span class="term-skill-label">Resolve with Skill:</span> <span class="term-skill-id">fix-403-forbidden-access</span></div>
+<div class="terminal-line term-skill-desc">Fix 403 Forbidden Access — detect identity, inspect IAM, bind the missing role, and verify the endpoint call.</div>
+<div class="terminal-line">→ <span class="term-skill-link" onclick="step2()">Run with Gemini in Console</span></div>
+<div class="terminal-line term-skill-cmd">  Or: gcloud skills run fix-403-error skill --from-error</div>
+<div class="terminal-line">---</div>
+`;
 
 async function typeCommand(text, speed = 22) {
   termInput.textContent = '';
@@ -496,18 +614,18 @@ async function step1() {
   await sleep(600);
 
   appendBlock(`
-<div style="color: var(--red); font-weight: 500; margin-bottom: 4px;">ERROR: (gcloud.ai.endpoints.predict) PERMISSION_DENIED</div>
-<div style="color: var(--text); margin-bottom: 6px;">Permission '<span style="color: var(--blue);">aiplatform.endpoints.predict</span>' denied on resource</div>
+<div style="color: var(--red); font-weight: 500; margin-bottom: 4px;">ERROR: (gcloud.ai.endpoints.predict) HTTPError 403: Forbidden</div>
+<div style="color: var(--text); margin-bottom: 6px;">The caller does not have permission '<span style="color: var(--blue);">aiplatform.endpoints.predict</span>' on the endpoint.</div>
 <div style="color: var(--text-muted); font-size: 12px;">'projects/light-haven-484520-f8/locations/us-central1/endpoints/1234567890'</div>
   `, 'term-error-bg');
 
   await sleep(400);
 
   appendBlock(`
-<div style="color: var(--purple); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">🔧 Resolve with Skill: <span style="font-family: var(--font-mono);">gcp:iam/grant-role</span></div>
-<div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px; line-height: 1.6;">Gemini can grant the missing role and verify the original operation succeeds.</div>
+<div style="color: var(--purple); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">🔧 Resolve with Skill: <span style="font-family: var(--font-mono);">fix-403-forbidden-access</span></div>
+<div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px; line-height: 1.6;">Fix 403 Forbidden Access — detect identity, inspect IAM, bind the missing role, and verify the endpoint call succeeds.</div>
 <div style="color: var(--text); font-size: 13px;">→ <span class="term-skill-link" onclick="step2()">Run with Gemini in Console</span></div>
-<div style="color: var(--text-muted); font-size: 11px; margin-top: 4px; font-family: var(--font-mono);">  Or: gcloud skills run iam/grant-role --from-error</div>
+<div style="color: var(--text-muted); font-size: 11px; margin-top: 4px; font-family: var(--font-mono);">  Or: gcloud skills run fix-403-error skill --from-error</div>
   `, 'term-skill-card');
 
   await sleep(400);
